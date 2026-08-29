@@ -1,0 +1,6 @@
+{
+  "name": "3D Animated Text & GIF Creator",
+  "description": "Crea scritte 3D animate e personalizzate in stile cartoon con font, colori, effetti tridimensionali ed esportazione video o GIF.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
