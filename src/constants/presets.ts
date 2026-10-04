@@ -1,4 +1,4 @@
-import { ColorPalette, TextGraphicProject, BadgeItem } from '../types';
+import { ColorPalette, TextGraphicProject, BadgeItem, TemplateProject } from '../types';
 
 export const AVAILABLE_FONTS = [
   { id: 'Fredoka', name: 'Fredoka Rounded', category: 'Puffy / Arrotondato', weights: '700' },
@@ -141,11 +141,13 @@ export function getFormattedCurrentDate(): { dayName: string; dayAndMonth: strin
   };
 }
 
-export const TEMPLATE_PROJECTS: { id: string; name: string; thumbnailEmoji: string; data: Partial<TextGraphicProject> }[] = [
+export const TEMPLATE_PROJECTS: TemplateProject[] = [
   {
     id: 'buongiorno_sabato_replica',
-    name: 'Buongiorno & Buon Sabato (Esatto della foto)',
+    name: 'Buongiorno & Buon Sabato',
+    category: 'buongiorno',
     thumbnailEmoji: '☀️',
+    description: 'Stile originale esatto della foto: giallo caldo, verde ulivo e sole 3D raggiante',
     data: {
       title: 'Buongiorno Buon Sabato',
       aspectRatio: '16:9',
@@ -229,8 +231,8 @@ export const TEMPLATE_PROJECTS: { id: string; name: string; thumbnailEmoji: stri
           id: 'b-sun',
           emoji: '☀️',
           name: 'Sole Raggiante',
-          xRatio: 0.31,
-          yRatio: 0.23,
+          xRatio: 0.85,
+          yRatio: 0.20,
           scale: 1.35,
           rotation: 12,
           animationDelay: 0.1,
@@ -239,9 +241,9 @@ export const TEMPLATE_PROJECTS: { id: string; name: string; thumbnailEmoji: stri
           id: 'b-sparkle1',
           emoji: '✨',
           name: 'Scintilla',
-          xRatio: 0.88,
-          yRatio: 0.18,
-          scale: 0.9,
+          xRatio: 0.15,
+          yRatio: 0.20,
+          scale: 1.0,
           rotation: -10,
           animationDelay: 0.3,
         }
@@ -251,7 +253,9 @@ export const TEMPLATE_PROJECTS: { id: string; name: string; thumbnailEmoji: stri
   {
     id: 'buona_domenica',
     name: 'Buona Domenica di Sole',
+    category: 'buongiorno',
     thumbnailEmoji: '🌻',
+    description: 'Font massiccio cartoon con girasole 3D e ondeggiamento festoso',
     data: {
       title: 'Buona Domenica',
       aspectRatio: '1:1',
@@ -301,9 +305,9 @@ export const TEMPLATE_PROJECTS: { id: string; name: string; thumbnailEmoji: stri
         },
         {
           id: 'l3',
-          text: 'Con Tanta Gioia 🌻',
-          fontFamily: 'Pacifico',
-          fontSize: 28,
+          text: 'Con Tanta Gioia & Relax',
+          fontFamily: 'Fredoka',
+          fontSize: 26,
           letterSpacing: 1,
           isUppercase: false,
           offsetY: 0,
@@ -314,11 +318,108 @@ export const TEMPLATE_PROJECTS: { id: string; name: string; thumbnailEmoji: stri
           id: 'b-sunflower',
           emoji: '🌻',
           name: 'Girasole',
-          xRatio: 0.82,
-          yRatio: 0.45,
-          scale: 1.2,
+          xRatio: 0.85,
+          yRatio: 0.20,
+          scale: 1.3,
           rotation: 15,
           animationDelay: 0.2,
+        },
+        {
+          id: 'b-sun',
+          emoji: '☀️',
+          name: 'Sole',
+          xRatio: 0.15,
+          yRatio: 0.20,
+          scale: 1.2,
+          rotation: -10,
+          animationDelay: 0.4,
+        }
+      ]
+    }
+  },
+  {
+    id: 'buon_lunedi',
+    name: 'Buon Lunedì & Nuova Settimana',
+    category: 'buongiorno',
+    thumbnailEmoji: '🚀',
+    description: 'Energia ed entusiasmo per ripartire alla grande con pop 3D e scintille',
+    data: {
+      title: 'Buon Lunedì',
+      aspectRatio: '16:9',
+      palette: COLOR_PALETTES[5], // neon lime violet
+      style3D: {
+        extrusionDepth: 16,
+        extrusionAngle: 90,
+        bevelWidth: 9,
+        showGloss: true,
+        showBackingPlate: true,
+        backingPlatePadding: 16,
+        backingPlateColor: '#4C1D95',
+        shadowBlur: 20,
+        shadowOpacity: 0.55,
+      },
+      animation: {
+        type: 'pop',
+        speed: 1.3,
+        intensity: 1.2,
+        durationSeconds: 3,
+        fps: 30,
+        sparklesEnabled: true,
+      },
+      background: {
+        type: 'gradient_sunset',
+        blur: 0,
+        brightness: 95,
+      },
+      lines: [
+        {
+          id: 'l1',
+          text: 'BUON LUNEDÌ',
+          fontFamily: 'Bungee',
+          fontSize: 40,
+          letterSpacing: 2,
+          isUppercase: true,
+          offsetY: 0,
+        },
+        {
+          id: 'l2',
+          text: 'Buon Inizio Settimana',
+          fontFamily: 'Fredoka',
+          fontSize: 30,
+          letterSpacing: 1,
+          isUppercase: false,
+          offsetY: 0,
+        },
+        {
+          id: 'l3',
+          text: 'Carica & Sorrisi per Oggi!',
+          fontFamily: 'Fredoka',
+          fontSize: 22,
+          letterSpacing: 1,
+          isUppercase: false,
+          offsetY: 0,
+        }
+      ],
+      badges: [
+        {
+          id: 'b-rocket',
+          emoji: '🚀',
+          name: 'Razzo',
+          xRatio: 0.85,
+          yRatio: 0.20,
+          scale: 1.3,
+          rotation: 15,
+          animationDelay: 0.1,
+        },
+        {
+          id: 'b-fire',
+          emoji: '🔥',
+          name: 'Fuoco',
+          xRatio: 0.15,
+          yRatio: 0.20,
+          scale: 1.2,
+          rotation: -12,
+          animationDelay: 0.3,
         }
       ]
     }
@@ -326,7 +427,9 @@ export const TEMPLATE_PROJECTS: { id: string; name: string; thumbnailEmoji: stri
   {
     id: 'buon_caffe',
     name: 'Pausa Caffè del Buongiorno',
+    category: 'caffe',
     thumbnailEmoji: '☕',
+    description: 'Atmosfera calda e accogliente con toni cioccolato, caramello e tazzina fumante',
     data: {
       title: 'Pausa Caffè',
       aspectRatio: '1:1',
@@ -367,16 +470,16 @@ export const TEMPLATE_PROJECTS: { id: string; name: string; thumbnailEmoji: stri
         },
         {
           id: 'l2',
-          text: 'CAFFÈ ☕',
+          text: 'CAFFÈ',
           fontFamily: 'Luckiest Guy',
-          fontSize: 46,
+          fontSize: 48,
           letterSpacing: 2,
           isUppercase: true,
           offsetY: 0,
         },
         {
           id: 'l3',
-          text: 'Per Iniziare alla Grande!',
+          text: 'Per iniziare alla grande!',
           fontFamily: 'Fredoka',
           fontSize: 24,
           letterSpacing: 1,
@@ -384,13 +487,123 @@ export const TEMPLATE_PROJECTS: { id: string; name: string; thumbnailEmoji: stri
           offsetY: 0,
         }
       ],
-      badges: []
+      badges: [
+        {
+          id: 'b-coffee',
+          emoji: '☕',
+          name: 'Caffè',
+          xRatio: 0.85,
+          yRatio: 0.20,
+          scale: 1.4,
+          rotation: 10,
+          animationDelay: 0.2,
+        },
+        {
+          id: 'b-croissant',
+          emoji: '🥐',
+          name: 'Cornetto',
+          xRatio: 0.15,
+          yRatio: 0.80,
+          scale: 1.3,
+          rotation: -15,
+          animationDelay: 0.4,
+        }
+      ]
+    }
+  },
+  {
+    id: 'buon_pomeriggio',
+    name: 'Buon Pomeriggio Dolce',
+    category: 'caffe',
+    thumbnailEmoji: '🍰',
+    description: 'Pasticceria cartoon golosa, torta alla crema e fragole zuccherine',
+    data: {
+      title: 'Buon Pomeriggio',
+      aspectRatio: '1:1',
+      palette: COLOR_PALETTES[1], // strawberry
+      style3D: {
+        extrusionDepth: 14,
+        extrusionAngle: 90,
+        bevelWidth: 8,
+        showGloss: true,
+        showBackingPlate: true,
+        backingPlatePadding: 15,
+        backingPlateColor: '#800F2F',
+        shadowBlur: 18,
+        shadowOpacity: 0.5,
+      },
+      animation: {
+        type: 'bounce',
+        speed: 1.1,
+        intensity: 1.1,
+        durationSeconds: 3,
+        fps: 30,
+        sparklesEnabled: true,
+      },
+      background: {
+        type: 'gradient_pastel',
+        blur: 0,
+        brightness: 100,
+      },
+      lines: [
+        {
+          id: 'l1',
+          text: 'BUON',
+          fontFamily: 'Baloo 2',
+          fontSize: 42,
+          letterSpacing: 2,
+          isUppercase: true,
+          offsetY: 0,
+        },
+        {
+          id: 'l2',
+          text: 'POMERIGGIO',
+          fontFamily: 'Baloo 2',
+          fontSize: 42,
+          letterSpacing: 2,
+          isUppercase: true,
+          offsetY: 0,
+        },
+        {
+          id: 'l3',
+          text: 'Una dolce pausa per te',
+          fontFamily: 'Fredoka',
+          fontSize: 26,
+          letterSpacing: 1,
+          isUppercase: false,
+          offsetY: 0,
+        }
+      ],
+      badges: [
+        {
+          id: 'b-cake',
+          emoji: '🍰',
+          name: 'Torta',
+          xRatio: 0.85,
+          yRatio: 0.20,
+          scale: 1.35,
+          rotation: 12,
+          animationDelay: 0.1,
+        },
+        {
+          id: 'b-strawberry',
+          emoji: '🍓',
+          name: 'Fragola',
+          xRatio: 0.15,
+          yRatio: 0.80,
+          scale: 1.25,
+          rotation: -10,
+          animationDelay: 0.3,
+        }
+      ]
     }
   },
   {
     id: 'buon_compleanno',
     name: 'Buon Compleanno Festoso',
+    category: 'feste',
     thumbnailEmoji: '🎂',
+    description: 'Torta con candeline, coriandoli e scritte 3D elastiche piene di allegria',
     data: {
       title: 'Buon Compleanno',
       aspectRatio: '1:1',
@@ -440,7 +653,7 @@ export const TEMPLATE_PROJECTS: { id: string; name: string; thumbnailEmoji: stri
         },
         {
           id: 'l3',
-          text: '🎉 Festa & Allegria 🎂',
+          text: 'Festa, Gioia & Sorrisi!',
           fontFamily: 'Fredoka',
           fontSize: 26,
           letterSpacing: 1,
@@ -454,8 +667,8 @@ export const TEMPLATE_PROJECTS: { id: string; name: string; thumbnailEmoji: stri
           emoji: '🎂',
           name: 'Torta',
           xRatio: 0.15,
-          yRatio: 0.25,
-          scale: 1.25,
+          yRatio: 0.20,
+          scale: 1.3,
           rotation: -12,
           animationDelay: 0.1,
         },
@@ -464,8 +677,8 @@ export const TEMPLATE_PROJECTS: { id: string; name: string; thumbnailEmoji: stri
           emoji: '🎉',
           name: 'Coriandoli',
           xRatio: 0.85,
-          yRatio: 0.25,
-          scale: 1.25,
+          yRatio: 0.20,
+          scale: 1.3,
           rotation: 15,
           animationDelay: 0.25,
         }
@@ -473,9 +686,89 @@ export const TEMPLATE_PROJECTS: { id: string; name: string; thumbnailEmoji: stri
     }
   },
   {
+    id: 'tanti_auguri',
+    name: 'Tanti Auguri & Festa Rainbow',
+    category: 'feste',
+    thumbnailEmoji: '🎉',
+    description: 'Effetto arcobaleno dinamico, coriandoli e palloncini per celebrazioni speciali',
+    data: {
+      title: 'Tanti Auguri Rainbow',
+      aspectRatio: '16:9',
+      palette: COLOR_PALETTES[4], // sunset coral
+      style3D: {
+        extrusionDepth: 16,
+        extrusionAngle: 90,
+        bevelWidth: 9,
+        showGloss: true,
+        showBackingPlate: true,
+        backingPlatePadding: 16,
+        backingPlateColor: '#3A015C',
+        shadowBlur: 20,
+        shadowOpacity: 0.5,
+      },
+      animation: {
+        type: 'rainbow',
+        speed: 1.2,
+        intensity: 1.2,
+        durationSeconds: 3,
+        fps: 30,
+        sparklesEnabled: true,
+      },
+      background: {
+        type: 'gradient_pastel',
+        blur: 0,
+        brightness: 100,
+      },
+      lines: [
+        {
+          id: 'l1',
+          text: 'AUGURISSIMI',
+          fontFamily: 'Luckiest Guy',
+          fontSize: 46,
+          letterSpacing: 2,
+          isUppercase: true,
+          offsetY: 0,
+        },
+        {
+          id: 'l2',
+          text: 'Che sia un Giorno Speciale!',
+          fontFamily: 'Fredoka',
+          fontSize: 28,
+          letterSpacing: 1,
+          isUppercase: false,
+          offsetY: 0,
+        }
+      ],
+      badges: [
+        {
+          id: 'b-party',
+          emoji: '🎉',
+          name: 'Festa',
+          xRatio: 0.85,
+          yRatio: 0.20,
+          scale: 1.35,
+          rotation: 12,
+          animationDelay: 0.1,
+        },
+        {
+          id: 'b-rainbow',
+          emoji: '🌈',
+          name: 'Arcobaleno',
+          xRatio: 0.15,
+          yRatio: 0.20,
+          scale: 1.3,
+          rotation: -10,
+          animationDelay: 0.3,
+        }
+      ]
+    }
+  },
+  {
     id: 'buonanotte_sogni',
     name: 'Buonanotte & Sogni d\'Oro',
+    category: 'notte',
     thumbnailEmoji: '🌙',
+    description: 'Tramonto serale viola e arancio con luna 3D e luccichii magici',
     data: {
       title: 'Buonanotte Sogni d\'Oro',
       aspectRatio: '1:1',
@@ -516,7 +809,7 @@ export const TEMPLATE_PROJECTS: { id: string; name: string; thumbnailEmoji: stri
         },
         {
           id: 'l2',
-          text: 'Sogni d\'Oro ✨',
+          text: 'Sogni d\'Oro',
           fontFamily: 'Fredoka',
           fontSize: 34,
           letterSpacing: 2,
@@ -530,10 +823,186 @@ export const TEMPLATE_PROJECTS: { id: string; name: string; thumbnailEmoji: stri
           emoji: '🌙',
           name: 'Luna',
           xRatio: 0.85,
-          yRatio: 0.22,
+          yRatio: 0.20,
           scale: 1.4,
           rotation: 15,
           animationDelay: 0.15,
+        },
+        {
+          id: 'b-star',
+          emoji: '⭐',
+          name: 'Stella',
+          xRatio: 0.15,
+          yRatio: 0.20,
+          scale: 1.2,
+          rotation: -12,
+          animationDelay: 0.35,
+        }
+      ]
+    }
+  },
+  {
+    id: 'dolce_notte',
+    name: 'Dolce Notte a Domani',
+    category: 'notte',
+    thumbnailEmoji: '⭐',
+    description: 'Stelle dorate, blu notte profondo e galleggiamento rilassante',
+    data: {
+      title: 'Dolce Notte a Domani',
+      aspectRatio: '16:9',
+      palette: COLOR_PALETTES[3], // ocean cyan
+      style3D: {
+        extrusionDepth: 14,
+        extrusionAngle: 90,
+        bevelWidth: 8,
+        showGloss: true,
+        showBackingPlate: true,
+        backingPlatePadding: 14,
+        backingPlateColor: '#03045E',
+        shadowBlur: 20,
+        shadowOpacity: 0.55,
+      },
+      animation: {
+        type: 'float',
+        speed: 0.9,
+        intensity: 0.9,
+        durationSeconds: 3,
+        fps: 30,
+        sparklesEnabled: true,
+      },
+      background: {
+        type: 'solid',
+        solidColor: '#0B0F19',
+        blur: 0,
+        brightness: 100,
+      },
+      lines: [
+        {
+          id: 'l1',
+          text: 'BUONA NOTTE',
+          fontFamily: 'Fredoka',
+          fontSize: 42,
+          letterSpacing: 2,
+          isUppercase: true,
+          offsetY: 0,
+        },
+        {
+          id: 'l2',
+          text: 'Ci vediamo domani!',
+          fontFamily: 'Pacifico',
+          fontSize: 28,
+          letterSpacing: 1,
+          isUppercase: false,
+          offsetY: 0,
+        }
+      ],
+      badges: [
+        {
+          id: 'b-star',
+          emoji: '⭐',
+          name: 'Stella',
+          xRatio: 0.85,
+          yRatio: 0.20,
+          scale: 1.35,
+          rotation: 12,
+          animationDelay: 0.2,
+        },
+        {
+          id: 'b-moon',
+          emoji: '🌙',
+          name: 'Luna',
+          xRatio: 0.15,
+          yRatio: 0.20,
+          scale: 1.3,
+          rotation: -10,
+          animationDelay: 0.4,
+        }
+      ]
+    }
+  },
+  {
+    id: 'ti_voglio_bene',
+    name: 'Ti Voglio Bene / Dolce Amore',
+    category: 'affetto',
+    thumbnailEmoji: '❤️',
+    description: 'Cuori pulsanti 3D, sfumatura rosso fragola e testo romantico',
+    data: {
+      title: 'Ti Voglio Bene',
+      aspectRatio: '1:1',
+      palette: COLOR_PALETTES[1],
+      style3D: {
+        extrusionDepth: 16,
+        extrusionAngle: 90,
+        bevelWidth: 9,
+        showGloss: true,
+        showBackingPlate: true,
+        backingPlatePadding: 16,
+        backingPlateColor: '#800F2F',
+        shadowBlur: 20,
+        shadowOpacity: 0.5,
+      },
+      animation: {
+        type: 'pulse',
+        speed: 1.2,
+        intensity: 1.3,
+        durationSeconds: 3,
+        fps: 30,
+        sparklesEnabled: true,
+      },
+      background: {
+        type: 'gradient_pastel',
+        blur: 0,
+        brightness: 100,
+      },
+      lines: [
+        {
+          id: 'l1',
+          text: 'TI VOGLIO',
+          fontFamily: 'Titan One',
+          fontSize: 42,
+          letterSpacing: 2,
+          isUppercase: true,
+          offsetY: 0,
+        },
+        {
+          id: 'l2',
+          text: 'Tanto Bene',
+          fontFamily: 'Pacifico',
+          fontSize: 36,
+          letterSpacing: 1,
+          isUppercase: false,
+          offsetY: 0,
+        },
+        {
+          id: 'l3',
+          text: 'Sei una persona speciale',
+          fontFamily: 'Fredoka',
+          fontSize: 24,
+          letterSpacing: 1,
+          isUppercase: false,
+          offsetY: 0,
+        }
+      ],
+      badges: [
+        {
+          id: 'b-heart',
+          emoji: '❤️',
+          name: 'Cuore',
+          xRatio: 0.85,
+          yRatio: 0.20,
+          scale: 1.4,
+          rotation: 12,
+          animationDelay: 0.1,
+        },
+        {
+          id: 'b-sparkle',
+          emoji: '✨',
+          name: 'Scintilla',
+          xRatio: 0.15,
+          yRatio: 0.20,
+          scale: 1.2,
+          rotation: -10,
+          animationDelay: 0.3,
         }
       ]
     }

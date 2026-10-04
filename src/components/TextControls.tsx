@@ -50,20 +50,43 @@ export function TextControls({ project, onUpdateProject }: TextControlsProps) {
     handleUpdateLine(lineIndex, { text: dateText });
   };
 
+  const handleInsertEmoji = (lineIndex: number, emoji: string) => {
+    const current = project.lines[lineIndex]?.text || '';
+    const newText = current ? `${current} ${emoji}` : emoji;
+    handleUpdateLine(lineIndex, { text: newText });
+  };
+
   const handleAddBadge = (emoji: string) => {
     onUpdateProject((prev) => {
+      const currentBadges = prev.badges || [];
+      const slots = [
+        { xRatio: 0.85, yRatio: 0.20, rot: 12 },  // Top-Right
+        { xRatio: 0.15, yRatio: 0.20, rot: -12 }, // Top-Left
+        { xRatio: 0.85, yRatio: 0.80, rot: -8 },  // Bottom-Right
+        { xRatio: 0.15, yRatio: 0.80, rot: 10 },  // Bottom-Left
+        { xRatio: 0.50, yRatio: 0.14, rot: 0 },   // Top-Center
+        { xRatio: 0.50, yRatio: 0.86, rot: 5 },   // Bottom-Center
+      ];
+      const slot = slots[currentBadges.length % slots.length];
       const newBadge: BadgeItem = {
-        id: `badge-${Date.now()}`,
+        id: `badge-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
         emoji,
-        name: 'Decorazione',
-        xRatio: 0.5 + (Math.random() * 0.4 - 0.2),
-        yRatio: 0.2 + (Math.random() * 0.3),
-        scale: 1.2,
-        rotation: Math.floor(Math.random() * 30 - 15),
-        animationDelay: Math.random() * 0.5,
+        name: `Adesivo ${emoji}`,
+        xRatio: slot.xRatio,
+        yRatio: slot.yRatio,
+        scale: 1.3,
+        rotation: slot.rot,
+        animationDelay: (currentBadges.length * 0.25) % 1,
       };
-      return { ...prev, badges: [...(prev.badges || []), newBadge] };
+      return { ...prev, badges: [...currentBadges, newBadge] };
     });
+  };
+
+  const handleUpdateBadge = (id: string, updates: Partial<BadgeItem>) => {
+    onUpdateProject((prev) => ({
+      ...prev,
+      badges: (prev.badges || []).map((b) => (b.id === id ? { ...b, ...updates } : b)),
+    }));
   };
 
   const handleRemoveBadge = (id: string) => {
@@ -153,17 +176,37 @@ export function TextControls({ project, onUpdateProject }: TextControlsProps) {
                 <Calendar className="w-3 h-3 text-[#1A1A1A]" /> Data Rapida:
               </span>
               <button
+                type="button"
                 onClick={() => handleInsertTodayDate(index, 'dayName')}
-                className="px-2.5 py-1 bg-white hover:bg-[#FFF7D6] text-[#1A1A1A] border-2 border-[#1A1A1A] rounded-lg text-xs font-bold shadow-[2px_2px_0px_0px_#1A1A1A] transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                className="px-2.5 py-1 bg-white hover:bg-[#FFF7D6] text-[#1A1A1A] border-2 border-[#1A1A1A] rounded-lg text-xs font-bold shadow-[2px_2px_0px_0px_#1A1A1A] transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none cursor-pointer"
               >
                 {dateInfo.dayName}
               </button>
               <button
+                type="button"
                 onClick={() => handleInsertTodayDate(index, 'dayAndMonth')}
-                className="px-2.5 py-1 bg-white hover:bg-[#FFF7D6] text-[#1A1A1A] border-2 border-[#1A1A1A] rounded-lg text-xs font-bold shadow-[2px_2px_0px_0px_#1A1A1A] transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                className="px-2.5 py-1 bg-white hover:bg-[#FFF7D6] text-[#1A1A1A] border-2 border-[#1A1A1A] rounded-lg text-xs font-bold shadow-[2px_2px_0px_0px_#1A1A1A] transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none cursor-pointer"
               >
                 {dateInfo.dayAndMonth}
               </button>
+            </div>
+
+            {/* Quick Emoji Helper for this Line */}
+            <div className="flex flex-wrap items-center gap-1 pt-0.5">
+              <span className="text-[10px] uppercase font-black text-[#666] flex items-center gap-1 mr-0.5">
+                <Smile className="w-3 h-3 text-[#FF3D00]" /> Emoji nel Testo:
+              </span>
+              {['☀️', '🌻', '🌸', '☕', '❤️', '✨', '⭐', '🌈', '🎉', '🍰', '🍀', '🔥', '🥐', '🍓', '🥑', '🦋'].map((em) => (
+                <button
+                  key={em}
+                  type="button"
+                  onClick={() => handleInsertEmoji(index, em)}
+                  className="w-7 h-7 bg-white hover:bg-[#FFD700] text-[#1A1A1A] border-2 border-[#1A1A1A] rounded-lg text-sm flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_#1A1A1A] transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none cursor-pointer"
+                  title={`Inserisci ${em} in questa riga`}
+                >
+                  {em}
+                </button>
+              ))}
             </div>
 
             {/* Font Selector & Size Sliders */}
@@ -388,24 +431,88 @@ export function TextControls({ project, onUpdateProject }: TextControlsProps) {
 
         {/* Active badges list */}
         {project.badges && project.badges.length > 0 && (
-          <div className="pt-2 border-t-2 border-neutral-100 space-y-2">
-            <span className="text-[11px] font-black text-[#666] uppercase block">
-              Elementi attivi sullo schermo:
+          <div className="pt-3 border-t-2 border-[#1A1A1A]/10 space-y-3">
+            <span className="text-[11px] font-black text-[#1A1A1A] uppercase tracking-wider block">
+              Adesivi &amp; Decorazioni Attive ({project.badges.length}):
             </span>
-            <div className="flex flex-wrap gap-2">
+            <div className="space-y-2.5">
               {project.badges.map((b) => (
                 <div
                   key={b.id}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-[#FFF7D6] border-2 border-[#1A1A1A] rounded-xl text-xs shadow-[2px_2px_0px_0px_#1A1A1A]"
+                  className="p-3 bg-[#FEF9F0] border-2 border-[#1A1A1A] rounded-xl space-y-2 shadow-[2px_2px_0px_0px_#1A1A1A]"
                 >
-                  <span className="text-base">{b.emoji}</span>
-                  <span className="text-[#1A1A1A] font-bold">{b.name}</span>
-                  <button
-                    onClick={() => handleRemoveBadge(b.id)}
-                    className="text-[#1A1A1A] hover:bg-[#FF3D00] hover:text-white w-5 h-5 rounded flex items-center justify-center font-black transition"
-                  >
-                    ×
-                  </button>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl p-1 bg-white border border-[#1A1A1A] rounded-lg shadow-[1px_1px_0px_0px_#1A1A1A]">
+                        {b.emoji}
+                      </span>
+                      <span className="text-xs font-black text-[#1A1A1A]">{b.name}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveBadge(b.id)}
+                      className="px-2 py-1 bg-white hover:bg-[#FF3D00] hover:text-white border-2 border-[#1A1A1A] rounded-lg text-xs font-black transition flex items-center gap-1 cursor-pointer"
+                      title="Elimina adesivo"
+                    >
+                      <Trash2 className="w-3 h-3 stroke-[2.5]" />
+                      <span>Rimuovi</span>
+                    </button>
+                  </div>
+
+                  {/* Position Chips */}
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <span className="text-[10px] font-black uppercase text-[#666] mr-1">Posizione:</span>
+                    {[
+                      { label: '↗ Alto DX', x: 0.85, y: 0.20 },
+                      { label: '↖ Alto SX', x: 0.15, y: 0.20 },
+                      { label: '↘ Basso DX', x: 0.85, y: 0.80 },
+                      { label: '↙ Basso SX', x: 0.15, y: 0.80 },
+                      { label: '⊙ Centro', x: 0.50, y: 0.50 },
+                    ].map((pos) => {
+                      const isActive = Math.abs(b.xRatio - pos.x) < 0.08 && Math.abs(b.yRatio - pos.y) < 0.08;
+                      return (
+                        <button
+                          key={pos.label}
+                          type="button"
+                          onClick={() => handleUpdateBadge(b.id, { xRatio: pos.x, yRatio: pos.y })}
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border transition-all cursor-pointer ${
+                            isActive
+                              ? 'bg-[#FFD700] text-[#1A1A1A] border-[#1A1A1A] font-black shadow-[1px_1px_0px_0px_#1A1A1A]'
+                              : 'bg-white text-[#444] border-neutral-300 hover:border-[#1A1A1A]'
+                          }`}
+                        >
+                          {pos.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Size Chips */}
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <span className="text-[10px] font-black uppercase text-[#666] mr-1">Grandezza:</span>
+                    {[
+                      { label: 'Piccolo', s: 0.9 },
+                      { label: 'Medio', s: 1.3 },
+                      { label: 'Grande', s: 1.8 },
+                      { label: 'Maxi', s: 2.3 },
+                    ].map((sz) => {
+                      const isActive = Math.abs(b.scale - sz.s) < 0.2;
+                      return (
+                        <button
+                          key={sz.label}
+                          type="button"
+                          onClick={() => handleUpdateBadge(b.id, { scale: sz.s })}
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border transition-all cursor-pointer ${
+                            isActive
+                              ? 'bg-[#33CCFF] text-[#1A1A1A] border-[#1A1A1A] font-black shadow-[1px_1px_0px_0px_#1A1A1A]'
+                              : 'bg-white text-[#444] border-neutral-300 hover:border-[#1A1A1A]'
+                          }`}
+                        >
+                          {sz.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               ))}
             </div>

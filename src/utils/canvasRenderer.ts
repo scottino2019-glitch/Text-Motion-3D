@@ -1,4 +1,4 @@
-import { TextGraphicProject, TextLine, ColorPalette } from '../types';
+import { TextGraphicProject, TextLine, ColorPalette, BadgeItem, Style3DConfig } from '../types';
 
 export interface RenderContextOptions {
   time: number; // in seconds
@@ -260,6 +260,35 @@ function drawSunRays(ctx: CanvasRenderingContext2D, width: number, height: numbe
   ctx.restore();
 }
 
+// Unicode-compliant emoji matcher including compound emojis, skin tones, zero-width joiners
+const EMOJI_REGEX = /(\p{Extended_Pictographic}[\uFE0E\uFE0F\u200D\u{1F3FB}-\u{1F3FF}\p{Extended_Pictographic}]*)/u;
+
+interface TextToken {
+  text: string;
+  isEmoji: boolean;
+  width: number;
+}
+
+function tokenizeLineText(ctx: CanvasRenderingContext2D, text: string, fontStr: string, fontSize: number): TextToken[] {
+  const parts = text.split(EMOJI_REGEX);
+  const tokens: TextToken[] = [];
+  
+  for (const part of parts) {
+    if (!part) continue;
+    const isEmoji = EMOJI_REGEX.test(part);
+    if (isEmoji) {
+      ctx.font = `${Math.round(fontSize * 0.95)}px "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+      const w = Math.max(fontSize * 0.95, ctx.measureText(part).width);
+      tokens.push({ text: part, isEmoji: true, width: w });
+    } else {
+      ctx.font = fontStr;
+      const w = ctx.measureText(part).width;
+      tokens.push({ text: part, isEmoji: false, width: w });
+    }
+  }
+  return tokens;
+}
+
 interface RenderedLineData {
   line: TextLine;
   textToDraw: string;
@@ -305,8 +334,17 @@ function calculateLinesLayout(
 
     // Prevent horizontal overflow
     const textToDraw = line.isUppercase ? line.text.toUpperCase() : line.text;
-    ctx.font = `900 ${effectiveSize}px "${line.fontFamily}", "Fredoka", sans-serif`;
-    let measuredW = ctx.measureText(textToDraw).width;
+    const fontStr = `900 ${effectiveSize}px "${line.fontFamily}", "Fredoka", sans-serif`;
+    
+    let measuredW = 0;
+    if (EMOJI_REGEX.test(textToDraw)) {
+      const tokens = tokenizeLineText(ctx, textToDraw, fontStr, effectiveSize);
+      measuredW = tokens.reduce((acc, t) => acc + t.width, 0);
+    } else {
+      ctx.font = fontStr;
+      measuredW = ctx.measureText(textToDraw).width;
+    }
+
     const maxAllowedW = canvasW * 0.90;
 
     if (measuredW > maxAllowedW && measuredW > 0) {
@@ -324,10 +362,17 @@ function calculateLinesLayout(
   lines.forEach((line, index) => {
     const effectiveSize = calculatedFontSizes[index];
     const fontStr = `900 ${effectiveSize}px "${line.fontFamily}", "Fredoka", sans-serif`;
-    ctx.font = fontStr;
     const textToDraw = line.isUppercase ? line.text.toUpperCase() : line.text;
-    const metrics = ctx.measureText(textToDraw);
-    const lineW = metrics.width;
+    
+    let lineW = 0;
+    if (EMOJI_REGEX.test(textToDraw)) {
+      const tokens = tokenizeLineText(ctx, textToDraw, fontStr, effectiveSize);
+      lineW = tokens.reduce((acc, t) => acc + t.width, 0);
+    } else {
+      ctx.font = fontStr;
+      lineW = ctx.measureText(textToDraw).width;
+    }
+
     const x = (canvasW - lineW) / 2;
     const y = currentY + (line.offsetY || 0);
 
@@ -561,12 +606,6 @@ function drawLine3D(
   ctx.scale(animScale, animScale);
   ctx.translate(-centerX, -centerY);
 
-  ctx.font = fontString;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
-
   const strokeScale = canvasW / 360;
   const depth = style3D.extrusionDepth * strokeScale;
   const angleRad = (style3D.extrusionAngle * Math.PI) / 180;
@@ -575,50 +614,13 @@ function drawLine3D(
 
   const drawY = y + animOffsetY;
 
-  // 1. Draw Multi-Layer 3D Extrusion
   const extrusionColor = colors.extrusionColor;
   const outlineColor = colors.outlineColor;
   const bevelWidth = Math.max(2, style3D.bevelWidth * strokeScale);
 
-  // Drop Shadow on the lowest layer
-  ctx.shadowColor = palette.shadowColor || 'rgba(0,0,0,0.45)';
-  ctx.shadowBlur = style3D.shadowBlur * strokeScale;
-  ctx.shadowOffsetY = style3D.shadowBlur * 0.6 * strokeScale;
-
-  for (let d = depth; d >= 1; d -= Math.max(1, strokeScale * 0.5)) {
-    const ox = stepX * d;
-    const oy = stepY * d;
-
-    // Dark extruded side body
-    ctx.strokeStyle = extrusionColor;
-    ctx.lineWidth = bevelWidth * 2;
-    ctx.strokeText(textToDraw, x + ox, drawY + oy);
-
-    ctx.fillStyle = extrusionColor;
-    ctx.fillText(textToDraw, x + ox, drawY + oy);
-
-    if (d === depth) {
-      ctx.shadowColor = 'transparent';
-    }
-  }
-
-  // 2. Thick Outer Border / Stroke for Front Face
-  ctx.strokeStyle = outlineColor;
-  ctx.lineWidth = bevelWidth * 2;
-  ctx.strokeText(textToDraw, x, drawY);
-
-  // 3. Inner Bevel Ring (Bright accent stroke before fill)
-  if (bevelWidth >= 4) {
-    ctx.strokeStyle = colors.bevelHighlight || '#FFFFFF';
-    ctx.lineWidth = Math.max(2, bevelWidth * 0.7);
-    ctx.strokeText(textToDraw, x, drawY - 1);
-  }
-
-  // 4. Vibrant Front Gradient Fill
+  // Gradient for text fill
   const grad = ctx.createLinearGradient(x, drawY - height, x, drawY);
-
   if (animation.type === 'rainbow') {
-    // Dynamic chromatic shift
     const hueOffset = (t * 40 + lineIndex * 60) % 360;
     grad.addColorStop(0, `hsl(${hueOffset}, 100%, 75%)`);
     grad.addColorStop(1, `hsl(${(hueOffset + 60) % 360}, 100%, 50%)`);
@@ -628,12 +630,164 @@ function drawLine3D(
     grad.addColorStop(1, colors.gradientBottom);
   }
 
-  ctx.fillStyle = grad;
-  ctx.fillText(textToDraw, x, drawY);
+  const hasEmoji = EMOJI_REGEX.test(textToDraw);
 
-  // 5. Specular Gloss / Shiny Candy Highlights (Glossy White Curve)
-  if (style3D.showGloss) {
-    drawTextGloss(ctx, textToDraw, x, drawY, height, width, t);
+  if (!hasEmoji) {
+    // Pure text line: original optimized drawing
+    ctx.font = fontString;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    // Drop Shadow on the lowest layer
+    ctx.shadowColor = palette.shadowColor || 'rgba(0,0,0,0.45)';
+    ctx.shadowBlur = style3D.shadowBlur * strokeScale;
+    ctx.shadowOffsetY = style3D.shadowBlur * 0.6 * strokeScale;
+
+    // 1. Draw Multi-Layer 3D Extrusion
+    for (let d = depth; d >= 1; d -= Math.max(1, strokeScale * 0.5)) {
+      const ox = stepX * d;
+      const oy = stepY * d;
+
+      ctx.strokeStyle = extrusionColor;
+      ctx.lineWidth = bevelWidth * 2;
+      ctx.strokeText(textToDraw, x + ox, drawY + oy);
+
+      ctx.fillStyle = extrusionColor;
+      ctx.fillText(textToDraw, x + ox, drawY + oy);
+
+      if (d === depth) {
+        ctx.shadowColor = 'transparent';
+      }
+    }
+
+    // 2. Thick Outer Border / Stroke for Front Face
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = bevelWidth * 2;
+    ctx.strokeText(textToDraw, x, drawY);
+
+    // 3. Inner Bevel Ring (Bright accent stroke before fill)
+    if (bevelWidth >= 4) {
+      ctx.strokeStyle = colors.bevelHighlight || '#FFFFFF';
+      ctx.lineWidth = Math.max(2, bevelWidth * 0.7);
+      ctx.strokeText(textToDraw, x, drawY - 1);
+    }
+
+    // 4. Vibrant Front Gradient Fill
+    ctx.fillStyle = grad;
+    ctx.fillText(textToDraw, x, drawY);
+
+    // 5. Specular Gloss / Shiny Candy Highlights
+    if (style3D.showGloss) {
+      drawTextGloss(ctx, textToDraw, x, drawY, height, width, t);
+    }
+  } else {
+    // Mixed text & emoji line: tokenize so emojis retain full color and get cartoon 3D sticker backing
+    const tokens = tokenizeLineText(ctx, textToDraw, fontString, fontSize);
+    let curX = x;
+    const tokenPositions: { token: TextToken; x: number }[] = [];
+    tokens.forEach((tok) => {
+      tokenPositions.push({ token: tok, x: curX });
+      curX += tok.width;
+    });
+
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    ctx.shadowColor = palette.shadowColor || 'rgba(0,0,0,0.45)';
+    ctx.shadowBlur = style3D.shadowBlur * strokeScale;
+    ctx.shadowOffsetY = style3D.shadowBlur * 0.6 * strokeScale;
+
+    // 1. 3D Extrusion
+    for (let d = depth; d >= 1; d -= Math.max(1, strokeScale * 0.5)) {
+      const ox = stepX * d;
+      const oy = stepY * d;
+
+      tokenPositions.forEach(({ token, x: tokX }) => {
+        if (!token.isEmoji) {
+          ctx.font = fontString;
+          ctx.strokeStyle = extrusionColor;
+          ctx.lineWidth = bevelWidth * 2;
+          ctx.strokeText(token.text, tokX + ox, drawY + oy);
+
+          ctx.fillStyle = extrusionColor;
+          ctx.fillText(token.text, tokX + ox, drawY + oy);
+        } else {
+          // Circular 3D extrusion under emoji sticker
+          const emCenterX = tokX + token.width / 2 + ox;
+          const emCenterY = drawY - height * 0.40 + oy;
+          const emRadius = fontSize * 0.52;
+          ctx.beginPath();
+          ctx.arc(emCenterX, emCenterY, emRadius, 0, Math.PI * 2);
+          ctx.fillStyle = extrusionColor;
+          ctx.fill();
+        }
+      });
+
+      if (d === depth) {
+        ctx.shadowColor = 'transparent';
+      }
+    }
+
+    // 2. Front Face Outer Border
+    tokenPositions.forEach(({ token, x: tokX }) => {
+      if (!token.isEmoji) {
+        ctx.font = fontString;
+        ctx.strokeStyle = outlineColor;
+        ctx.lineWidth = bevelWidth * 2;
+        ctx.strokeText(token.text, tokX, drawY);
+
+        if (bevelWidth >= 4) {
+          ctx.strokeStyle = colors.bevelHighlight || '#FFFFFF';
+          ctx.lineWidth = Math.max(2, bevelWidth * 0.7);
+          ctx.strokeText(token.text, tokX, drawY - 1);
+        }
+      } else {
+        // Crisp white cartoon sticker base plate for emoji
+        const emCenterX = tokX + token.width / 2;
+        const emCenterY = drawY - height * 0.40;
+        const emRadius = fontSize * 0.52;
+
+        ctx.beginPath();
+        ctx.arc(emCenterX, emCenterY, emRadius, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+
+        ctx.strokeStyle = outlineColor;
+        ctx.lineWidth = Math.max(3, bevelWidth * 1.2);
+        ctx.stroke();
+      }
+    });
+
+    // 3. Front Face Fill
+    tokenPositions.forEach(({ token, x: tokX }) => {
+      if (!token.isEmoji) {
+        ctx.font = fontString;
+        ctx.fillStyle = grad;
+        ctx.fillText(token.text, tokX, drawY);
+      } else {
+        const emCenterX = tokX + token.width / 2;
+        const emCenterY = drawY - height * 0.38;
+        ctx.shadowColor = 'transparent';
+        ctx.fillStyle = '#000000';
+        ctx.font = `${Math.round(fontSize * 0.95)}px "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(token.text, emCenterX, emCenterY);
+
+        // Reset text alignment
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+      }
+    });
+
+    // 4. Gloss Sheen on text parts
+    if (style3D.showGloss) {
+      drawTextGloss(ctx, textToDraw, x, drawY, height, width, t);
+    }
   }
 
   ctx.restore();
@@ -688,16 +842,18 @@ function drawBadges(
   width: number,
   height: number
 ) {
-  if (!project.badges) return;
+  if (!project.badges || project.badges.length === 0) return;
+
+  const visualScale = width / 360;
 
   project.badges.forEach((badge) => {
     const badgeX = badge.xRatio * width;
     const badgeY = badge.yRatio * height;
 
     // Bobbing and rotation animation
-    const bob = Math.sin(t + badge.animationDelay * 5) * 8;
-    const rot = (badge.rotation * Math.PI) / 180 + Math.sin(t * 1.2 + badge.animationDelay) * 0.1;
-    const pulseScale = badge.scale * (1 + Math.sin(t * 1.5 + badge.animationDelay) * 0.06);
+    const bob = Math.sin(t + badge.animationDelay * 5) * (8 * (visualScale / 3));
+    const rot = (badge.rotation * Math.PI) / 180 + Math.sin(t * 1.2 + badge.animationDelay) * 0.08;
+    const pulseScale = badge.scale * (1 + Math.sin(t * 1.5 + badge.animationDelay) * 0.05);
 
     ctx.save();
     ctx.translate(badgeX, badgeY + bob);
@@ -705,42 +861,104 @@ function drawBadges(
     ctx.scale(pulseScale, pulseScale);
 
     if (badge.emoji === '☀️') {
-      // Draw rich 3D cartoon sun like in the reference image!
-      draw3DSunBadge(ctx, t);
+      // Draw rich 3D cartoon sun scaled to canvas resolution
+      draw3DSunBadge(ctx, t, visualScale);
     } else {
-      // Draw emoji with 3D drop shadow and thick border
-      const emojiSize = 56;
-      ctx.font = `${emojiSize}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      // 3D Shadow
-      ctx.shadowColor = 'rgba(0,0,0,0.4)';
-      ctx.shadowBlur = 12;
-      ctx.shadowOffsetY = 6;
-      ctx.fillText(badge.emoji, 0, 0);
+      // Draw 3D cartoon sticker badge with white backing bubble and glossy arc
+      draw3DStickerBadge(ctx, badge, t, visualScale, project.palette, project.style3D);
     }
 
     ctx.restore();
   });
 }
 
-function draw3DSunBadge(ctx: CanvasRenderingContext2D, t: number) {
-  const r = 32;
+function draw3DStickerBadge(
+  ctx: CanvasRenderingContext2D,
+  badge: BadgeItem,
+  t: number,
+  visualScale: number,
+  palette: ColorPalette,
+  style3D: Style3DConfig
+) {
+  const r = 36 * visualScale;
+  const depth = Math.max(4, 8 * (visualScale / 3));
+  const strokeW = Math.max(3, 5 * (visualScale / 3));
+
+  ctx.save();
+
+  // 1. Drop shadow & 3D Extrusion
+  ctx.shadowColor = palette.shadowColor || 'rgba(0, 0, 0, 0.45)';
+  ctx.shadowBlur = 14 * (visualScale / 3);
+  ctx.shadowOffsetY = 8 * (visualScale / 3);
+
+  const extColor = palette.extrusionColor || '#1A1A1A';
+
+  // Draw extruded rim downwards
+  for (let d = depth; d >= 0; d -= 2) {
+    ctx.beginPath();
+    ctx.arc(0, d, r + strokeW / 2, 0, Math.PI * 2);
+    ctx.fillStyle = extColor;
+    ctx.fill();
+    if (d === depth) {
+      ctx.shadowColor = 'transparent';
+    }
+  }
+
+  // 2. Thick outer stroke & white sticker backing
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fill();
+  ctx.strokeStyle = palette.outlineColor || '#1A1A1A';
+  ctx.lineWidth = strokeW;
+  ctx.stroke();
+
+  // 3. Subtle cream/pastel radial gradient on the sticker backing for depth
+  const innerGrad = ctx.createRadialGradient(0, -r * 0.3, 2, 0, 0, r);
+  innerGrad.addColorStop(0, '#FFFFFF');
+  innerGrad.addColorStop(0.85, '#FFFBF0');
+  innerGrad.addColorStop(1, '#F3ECE0');
+  ctx.fillStyle = innerGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, r - strokeW / 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 4. Render Emoji Glyph in pristine native color
+  ctx.shadowColor = 'transparent';
+  ctx.fillStyle = '#000000';
+  const emojiFontSize = Math.round(r * 1.25);
+  ctx.font = `${emojiFontSize}px "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(badge.emoji, 0, 1 * (visualScale / 3));
+
+  // 5. Gloss Sheen Arc across top of sticker
+  ctx.beginPath();
+  ctx.arc(0, -r * 0.25, r * 0.65, Math.PI * 1.15, Math.PI * 1.85);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.lineWidth = 3.5 * (visualScale / 3);
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function draw3DSunBadge(ctx: CanvasRenderingContext2D, t: number, visualScale: number = 1) {
+  const r = 32 * (visualScale / 3 * 2.8);
   const rays = 8;
-  const rayLength = 16;
-  const rayWidth = 14;
+  const rayLength = 16 * (visualScale / 3 * 2.8);
+  const rayWidth = 14 * (visualScale / 3 * 2.8);
 
   ctx.save();
 
   // Drop shadow
   ctx.shadowColor = 'rgba(0,0,0,0.45)';
-  ctx.shadowBlur = 14;
-  ctx.shadowOffsetY = 8;
+  ctx.shadowBlur = 14 * (visualScale / 3);
+  ctx.shadowOffsetY = 8 * (visualScale / 3);
 
   // 1. Backing 3D Extrusion in Forest Green / Dark Tone (Matching letters)
   ctx.strokeStyle = '#143627';
-  ctx.lineWidth = 14;
+  ctx.lineWidth = 14 * (visualScale / 3);
   ctx.lineJoin = 'round';
 
   // Draw rays path
@@ -760,7 +978,7 @@ function draw3DSunBadge(ctx: CanvasRenderingContext2D, t: number) {
 
   // 2. Thick Outer Border Lime Green
   ctx.strokeStyle = '#22573F';
-  ctx.lineWidth = 8;
+  ctx.lineWidth = 8 * (visualScale / 3);
   ctx.stroke();
 
   // 3. Golden Sun Rays Fill
@@ -784,14 +1002,14 @@ function draw3DSunBadge(ctx: CanvasRenderingContext2D, t: number) {
 
   // 5. Golden Bevel Outline around center sphere
   ctx.strokeStyle = '#D48B00';
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 3 * (visualScale / 3);
   ctx.stroke();
 
   // 6. Gloss Sheen on top of Sun
   ctx.beginPath();
-  ctx.arc(0, -6, r * 0.75, Math.PI * 1.1, Math.PI * 1.9);
+  ctx.arc(0, -6 * (visualScale / 3), r * 0.75, Math.PI * 1.1, Math.PI * 1.9);
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 4 * (visualScale / 3);
   ctx.lineCap = 'round';
   ctx.stroke();
 

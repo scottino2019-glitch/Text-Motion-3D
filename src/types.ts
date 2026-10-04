@@ -95,6 +95,15 @@ export interface TextGraphicProject {
   badges: BadgeItem[];
 }
 
+export interface TemplateProject {
+  id: string;
+  name: string;
+  category: 'buongiorno' | 'caffe' | 'feste' | 'notte' | 'affetto';
+  thumbnailEmoji: string;
+  description: string;
+  data: Partial<TextGraphicProject>;
+}
+
 export interface ExportSettings {
   format: 'gif' | 'video' | 'png';
   width: number;

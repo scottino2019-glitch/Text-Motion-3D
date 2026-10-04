@@ -7,6 +7,7 @@ interface HeaderProps {
   onApplyTemplate: (templateId: string) => void;
   onApplyTodayDate: () => void;
   onOpenExportModal: () => void;
+  onOpenTemplatesModal: () => void;
   onResetProject: () => void;
 }
 
@@ -15,6 +16,7 @@ export function Header({
   onApplyTemplate,
   onApplyTodayDate,
   onOpenExportModal,
+  onOpenTemplatesModal,
   onResetProject,
 }: HeaderProps) {
   const dateInfo = getFormattedCurrentDate();
@@ -44,30 +46,16 @@ export function Header({
 
         {/* Quick Actions & Templates */}
         <div className="flex items-center flex-wrap gap-2.5">
-          {/* Template presets selector */}
-          <div className="relative group">
-            <button className="flex items-center gap-1.5 px-3.5 py-2 bg-white text-[#1A1A1A] rounded-xl text-xs font-black uppercase tracking-wider border-2 border-[#1A1A1A] shadow-[3px_3px_0px_0px_#FFD700] hover:bg-[#FFF7D6] transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none cursor-pointer">
-              <Wand2 className="w-3.5 h-3.5 text-[#FF3D00]" />
-              <span>Modelli</span>
-            </button>
-            <div className="absolute left-0 sm:right-0 sm:left-auto top-full mt-2 w-72 bg-white border-3 border-[#1A1A1A] rounded-2xl shadow-[6px_6px_0px_0px_#1A1A1A] p-2.5 hidden group-hover:block hover:block z-50 animate-in fade-in zoom-in-95">
-              <div className="text-[11px] font-black uppercase tracking-wider text-[#666] px-2 py-1 mb-1 border-b-2 border-neutral-100">
-                Scegli un template pronto
-              </div>
-              <div className="space-y-1.5">
-                {TEMPLATE_PROJECTS.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => onApplyTemplate(t.id)}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-[#1A1A1A] hover:bg-[#FFF7D6] hover:border-2 hover:border-[#1A1A1A] flex items-center gap-2.5 transition border-2 border-transparent"
-                  >
-                    <span className="text-lg">{t.thumbnailEmoji}</span>
-                    <span className="truncate">{t.name}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+          {/* Template presets selector - opens complete templates gallery */}
+          <button
+            type="button"
+            onClick={onOpenTemplatesModal}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-white text-[#1A1A1A] rounded-xl text-xs font-black uppercase tracking-wider border-2 border-[#1A1A1A] shadow-[3px_3px_0px_0px_#FFD700] hover:bg-[#FFF7D6] transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none cursor-pointer"
+            title="Sfoglia catalogo modelli pronti"
+          >
+            <Wand2 className="w-3.5 h-3.5 text-[#FF3D00]" />
+            <span>Modelli ({TEMPLATE_PROJECTS.length})</span>
+          </button>
 
           {/* Quick Insert Today's Date */}
           <button

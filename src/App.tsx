@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Type, Palette, Activity, Image as ImageIcon, Sparkles, Download, Layers, ShieldCheck } from 'lucide-react';
+import { Type, Palette, Activity, Image as ImageIcon, Sparkles, Download, Layers, ShieldCheck, Wand2 } from 'lucide-react';
 import { TextGraphicProject } from './types';
 import { TEMPLATE_PROJECTS, getFormattedCurrentDate } from './constants/presets';
 import { Header } from './components/Header';
@@ -9,6 +9,8 @@ import { StyleControls } from './components/StyleControls';
 import { AnimationControls } from './components/AnimationControls';
 import { BackgroundControls } from './components/BackgroundControls';
 import { ExportModal } from './components/ExportModal';
+import { TemplatesModal } from './components/TemplatesModal';
+import { TemplatesControl } from './components/TemplatesControl';
 
 export default function App() {
   // Default project matching the user's reference image exactly
@@ -27,8 +29,9 @@ export default function App() {
     };
   });
 
-  const [activeTab, setActiveTab] = useState<'text' | 'style' | 'animation' | 'background'>('text');
+  const [activeTab, setActiveTab] = useState<'templates' | 'text' | 'style' | 'animation' | 'background'>('text');
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
+  const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState<boolean>(false);
 
   const handleApplyTemplate = (templateId: string) => {
     const found = TEMPLATE_PROJECTS.find((t) => t.id === templateId);
@@ -82,6 +85,7 @@ export default function App() {
         onApplyTemplate={handleApplyTemplate}
         onApplyTodayDate={handleApplyTodayDate}
         onOpenExportModal={() => setIsExportModalOpen(true)}
+        onOpenTemplatesModal={() => setIsTemplatesModalOpen(true)}
         onResetProject={handleResetProject}
       />
 
@@ -113,59 +117,78 @@ export default function App() {
 
         {/* Right Column: Customization Suite (5 cols) */}
         <div className="lg:col-span-5 flex flex-col space-y-4">
-          {/* Navigation Tabs */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 bg-white p-2 rounded-2xl border-3 border-[#1A1A1A] shadow-[4px_4px_0px_0px_#1A1A1A] gap-2">
+          {/* Navigation Tabs - 5 complete tabs including Modelli */}
+          <div className="grid grid-cols-5 bg-white p-1.5 sm:p-2 rounded-2xl border-3 border-[#1A1A1A] shadow-[4px_4px_0px_0px_#1A1A1A] gap-1 sm:gap-1.5">
+            <button
+              onClick={() => setActiveTab('templates')}
+              className={`py-2 px-1 rounded-xl text-xs font-black uppercase tracking-wide flex items-center justify-center gap-1 sm:gap-1.5 transition-all min-w-0 cursor-pointer ${
+                activeTab === 'templates'
+                  ? 'bg-[#FFD700] text-[#1A1A1A] border-2 border-[#1A1A1A] shadow-[2px_2px_0px_0px_#1A1A1A]'
+                  : 'text-[#1A1A1A] hover:bg-[#FFF7D6] border-2 border-transparent'
+              }`}
+              title="Catalogo Modelli Pronti"
+            >
+              <Wand2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5] text-[#FF3D00] shrink-0" />
+              <span className="truncate">Modelli</span>
+            </button>
+
             <button
               onClick={() => setActiveTab('text')}
-              className={`py-2.5 px-2 rounded-xl text-xs font-black uppercase tracking-wide flex items-center justify-center gap-1.5 transition-all min-w-0 cursor-pointer ${
+              className={`py-2 px-1 rounded-xl text-xs font-black uppercase tracking-wide flex items-center justify-center gap-1 sm:gap-1.5 transition-all min-w-0 cursor-pointer ${
                 activeTab === 'text'
                   ? 'bg-[#FF3D00] text-white border-2 border-[#1A1A1A] shadow-[2px_2px_0px_0px_#1A1A1A]'
                   : 'text-[#1A1A1A] hover:bg-[#FFF7D6] border-2 border-transparent'
               }`}
             >
-              <Type className="w-4 h-4 stroke-[3] shrink-0" />
+              <Type className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3] shrink-0" />
               <span className="truncate">Testo</span>
             </button>
 
             <button
               onClick={() => setActiveTab('style')}
-              className={`py-2.5 px-2 rounded-xl text-xs font-black uppercase tracking-wide flex items-center justify-center gap-1.5 transition-all min-w-0 cursor-pointer ${
+              className={`py-2 px-1 rounded-xl text-xs font-black uppercase tracking-wide flex items-center justify-center gap-1 sm:gap-1.5 transition-all min-w-0 cursor-pointer ${
                 activeTab === 'style'
                   ? 'bg-[#FFD700] text-[#1A1A1A] border-2 border-[#1A1A1A] shadow-[2px_2px_0px_0px_#1A1A1A]'
                   : 'text-[#1A1A1A] hover:bg-[#FFF7D6] border-2 border-transparent'
               }`}
             >
-              <Palette className="w-4 h-4 stroke-[3] shrink-0" />
-              <span className="truncate">3D &amp; Colori</span>
+              <Palette className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3] shrink-0" />
+              <span className="truncate">3D</span>
             </button>
 
             <button
               onClick={() => setActiveTab('animation')}
-              className={`py-2.5 px-2 rounded-xl text-xs font-black uppercase tracking-wide flex items-center justify-center gap-1.5 transition-all min-w-0 cursor-pointer ${
+              className={`py-2 px-1 rounded-xl text-xs font-black uppercase tracking-wide flex items-center justify-center gap-1 sm:gap-1.5 transition-all min-w-0 cursor-pointer ${
                 activeTab === 'animation'
                   ? 'bg-[#33CCFF] text-[#1A1A1A] border-2 border-[#1A1A1A] shadow-[2px_2px_0px_0px_#1A1A1A]'
                   : 'text-[#1A1A1A] hover:bg-[#FFF7D6] border-2 border-transparent'
               }`}
             >
-              <Activity className="w-4 h-4 stroke-[3] shrink-0" />
-              <span className="truncate">Movimento</span>
+              <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3] shrink-0" />
+              <span className="truncate">Moto</span>
             </button>
 
             <button
               onClick={() => setActiveTab('background')}
-              className={`py-2.5 px-2 rounded-xl text-xs font-black uppercase tracking-wide flex items-center justify-center gap-1.5 transition-all min-w-0 cursor-pointer ${
+              className={`py-2 px-1 rounded-xl text-xs font-black uppercase tracking-wide flex items-center justify-center gap-1 sm:gap-1.5 transition-all min-w-0 cursor-pointer ${
                 activeTab === 'background'
                   ? 'bg-[#00FF41] text-[#1A1A1A] border-2 border-[#1A1A1A] shadow-[2px_2px_0px_0px_#1A1A1A]'
                   : 'text-[#1A1A1A] hover:bg-[#FFF7D6] border-2 border-transparent'
               }`}
             >
-              <ImageIcon className="w-4 h-4 stroke-[3] shrink-0" />
+              <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3] shrink-0" />
               <span className="truncate">Sfondo</span>
             </button>
           </div>
 
           {/* Active Tab Panel */}
           <div className="flex-1">
+            {activeTab === 'templates' && (
+              <TemplatesControl
+                onApplyTemplate={handleApplyTemplate}
+                currentTemplateTitle={project.title}
+              />
+            )}
             {activeTab === 'text' && (
               <TextControls project={project} onUpdateProject={setProject} />
             )}
@@ -191,6 +214,13 @@ export default function App() {
         <span className="hidden sm:inline text-[#FFD700]">No Server • Local Engine Only</span>
         <span className="text-[#33CCFF]">FPS: 60 Live</span>
       </footer>
+
+      {/* Templates Modal Dialog */}
+      <TemplatesModal
+        isOpen={isTemplatesModalOpen}
+        onClose={() => setIsTemplatesModalOpen(false)}
+        onApplyTemplate={handleApplyTemplate}
+      />
 
       {/* Export Modal Dialog */}
       <ExportModal
